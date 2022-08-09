@@ -1,0 +1,364 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>GameProject</title>
+</head>
+
+<script src="./raycast.js"></script>
+<img src="./level.png" id="levelpng">
+
+<script> 	
+	// initialize time variables
+	var lasttime = Date.now()
+	var deltatime = 0
+
+	// initialize I/O variables
+	var canvas
+	var ctx
+
+	var keysDown = new Array()
+
+	// initialize dev variables
+	var runloop = true
+
+	var levelfactor = 40
+
+	var level = [[]]
+
+	const diagmult = 1/Math.sqrt(2)
+
+	var lastplayerangle = 0
+
+	var points = []
+
+	var player = {
+		x: 1.5 * levelfactor,
+		y: 1.5 * levelfactor,
+		angle: Date.now(),
+		speed: 0,
+		strafe: 0,
+		size: levelfactor / 2,
+		control: function(){
+			if(keysDown[38] || keysDown[87]){
+				player.speed = 2
+			}else if(keysDown[40] || keysDown[83]){
+				player.speed = -2
+			}else{
+				player.speed = 0
+			}
+
+			if(keysDown[37]){
+				player.strafe = -2
+			}
+			else if(keysDown[39]){
+				player.strafe = 2
+			}else{
+				player.strafe = 0
+			}
+
+			if(player.speed != 0 && player.strafe != 0){
+				player.speed = player.speed * diagmult
+				player.strafe = player.strafe * diagmult
+			}
+
+			if(keysDown[65]){
+				player.angle -= 2 * Math.PI / 180
+				player.angle = player.angle % (Math.PI * 2)
+			}
+			if(keysDown[68]){
+				player.angle += 2 * Math.PI / 180
+				player.angle = player.angle % (Math.PI * 2)
+			}
+
+			checkx = Math.floor((player.x + (player.speed * Math.cos(player.angle))) / levelfactor)
+			checky = Math.floor(player.y / levelfactor)
+
+			if(level[checky] != undefined && level[checky][checkx] != undefined && level[checky][checkx] == 0){
+				player.x += Math.cos(player.angle) * player.speed
+			}
+
+			checky = Math.floor((player.y + (player.speed * Math.sin(player.angle))) / levelfactor)
+			checkx = Math.floor(player.x / levelfactor)
+
+			if(level[checky] != undefined && level[checky][checkx] != undefined && level[checky][checkx] == 0){
+				player.y += Math.sin(player.angle) * player.speed
+			}
+			
+			strafeangle = player.angle + Math.PI/2
+
+			checkx = Math.floor((player.x + (player.strafe * Math.cos(strafeangle))) / levelfactor)
+			checky = Math.floor(player.y / levelfactor)
+
+			if(level[checky] != undefined && level[checky][checkx] != undefined && level[checky][checkx] == 0){
+				player.x += Math.cos(strafeangle) * player.strafe
+			}
+
+			checky = Math.floor((player.y + (player.strafe * Math.sin(strafeangle))) / levelfactor)
+			checkx = Math.floor(player.x / levelfactor)
+
+			if(level[checky] != undefined && level[checky][checkx] != undefined && level[checky][checkx] == 0){
+				player.y += Math.sin(strafeangle) * player.strafe
+			}
+
+			if(player.speed != 0 || player.strafe != 0 || player.angle != lastplayerangle){
+				window.requestAnimationFrame(draw)
+			}
+			lastplayerangle = player.angle
+		}
+	}
+
+	function Load(){
+		var levelpng = new Image()
+		levelpng = document.getElementById("levelpng")
+		
+		document.getElementById("levelpng").remove()
+		
+		generateLevel(levelpng)
+	}
+	
+	function readImage(e){
+		var img = new Image
+		img.src = URL.createObjectURL(e.files[0])
+		img.onload = function() {
+			generateLevel(img)
+			URL.revokeObjectURL(img)
+		}
+	}
+
+	function generateLevel(img){
+		var levelcanvas= document.createElement('canvas')
+		levelcanvas.id = "levelcanvas"
+		levelcanvas.width = img.width
+		levelcanvas.height = img.height
+		var body = document.getElementsByTagName("body")[0]
+		body.appendChild(levelcanvas)
+
+		var levelctx = document.getElementById("levelcanvas").getContext('2d')
+		levelctx.drawImage(img, 0,0)
+
+		level = create2darray(img.width, img.height)
+
+		var start = []
+		var starti = 0
+
+		for(y = 0; y < level.length; y++){
+			for(x = 0; x < level[0].length; x++){
+
+				var data = levelctx.getImageData(x, y, 1, 1).data
+
+				if(data[0] == 0 && data[1] == 0 && data[2] == 0){
+					level[y][x] = 1
+				}
+				if(data[0] == 0 && data[1] == 255 && data[2] == 0){
+					start[starti] = {x: x, y: y}
+					starti++
+				}
+			}
+		}
+
+		try{
+			var rand = Math.floor((Date.now() * 100)% starti)
+			player.x = (start[rand].x + 0.5) * levelfactor
+			player.y = (start[rand].y + 0.5) * levelfactor
+		}catch(err){
+			player.x = 1.5 * levelfactor
+			player.y = 1.5 * levelfactor
+		}
+		
+		
+		document.getElementById("levelcanvas").remove()
+
+		window.requestAnimationFrame(draw)
+
+		Start()
+	}
+
+
+	function Start() {
+		runloop = false
+
+		// initialize canvas & set canvas size
+		canvas = document.getElementById("gameArea")
+		canvas.width = 1024
+		canvas.height = 800
+
+		ctx = canvas.getContext("2d")
+
+
+		var plook = {
+			x:Math.cos(0),
+			y:Math.sin(0)
+		}
+		var screen = {
+			x:Math.cos(Math.PI/2),
+			y:Math.sin(Math.PI/2)
+		}
+
+		points = new Array()
+
+		pointswidth = canvas.width // odd to fit 90 degree angle
+		pointsdist = (pointswidth - 1) / 2
+		
+		for(i = -pointsdist; i <= pointsdist; i++){
+			points[i+pointsdist] = {x: (plook.x * pointsdist) + (screen.x * i), y: (plook.y * pointsdist) + (screen.y * i), ang: 0}
+			points[i+pointsdist].ang = Math.atan2(points[i+pointsdist].y, points[i+pointsdist].x)
+		}
+
+		// Create event listeners for keysdown variable
+		window.addEventListener("keydown", function (e) {
+			keysDown[e.keyCode] = true
+		})
+		window.addEventListener("keyup", function (e) {
+			delete keysDown[e.keyCode]
+		})
+
+		// Create event listener for window resizing + resize window
+		addEventListener("resize", (e) => {
+			window.resizeTo(canvas.width + 8, canvas.height + 28)
+		})
+		window.resizeBy(1, 1)
+
+		window.requestAnimationFrame(draw)
+
+		// Begin update loop
+		window.requestAnimationFrame(startupdate)
+	}
+	
+	function create2darray(width, height){
+		var newArray = new Array()
+		for(y = 0; y < height; y++){
+			newArray[y] = new Array()
+			for(x = 0; x < width; x++){
+				newArray[y][x] = 0
+			}
+		}
+		return newArray
+	}
+
+	function startupdate(){
+		runloop = true
+		update()
+	}
+
+	function update() {
+		// Update time variables
+		deltatime = (Date.now() - lasttime) / 1000
+		lasttime = Date.now()
+
+		player.control()
+
+		// update game
+		//draw()
+
+		if(keysDown[77]){
+			window.requestAnimationFrame(drawmap)
+		}
+		
+		// continue loop
+		if(runloop){
+			window.requestAnimationFrame(update)
+		}
+	}
+	
+	function draw(){
+		ctx.beginPath()
+		ctx.rect(0,0,canvas.width,canvas.height / 2)
+		ctx.fillStyle = "#88aacc"
+		ctx.fill()
+
+		ctx.beginPath()
+		ctx.rect(0,canvas.height/2,canvas.width,canvas.height)
+		ctx.fillStyle = "#277727"
+		ctx.fill()
+
+		for(i = 0; i < canvas.width; i++){
+			ctx.beginPath()
+			ctx.fillStyle = "#FFFFFF"
+			rayangle = player.angle + points[i].ang
+			ray = raycast(player.x, player.y, rayangle)
+			ray.dist = levelfactor * 500 / (ray.dist * Math.cos(points[i].ang))
+
+			switch(ray.walltype){
+				case 1:
+					if(ray.xwall){
+						ctx.fillStyle = "#992222"
+					}else{
+						ctx.fillStyle = "#882222"
+					}
+				break
+				default:
+					if(ray.xwall){
+						ctx.fillStyle = "#222299"
+					}else{
+						ctx.fillStyle = "#222288"
+					}
+				break
+			}
+
+			ctx.rect(i,(canvas.height/2) - ((ray.dist)/2),1, ray.dist)
+			ctx.fill()
+		}
+	}
+
+	function drawmap(){
+		xsize = 1 / ((level[0].length * levelfactor) / canvas.width)
+		ysize = 1 / ((level.length * levelfactor) / canvas.height)
+		
+		var scale = xsize > ysize ? ysize : xsize
+
+		// draw level
+		for(y = 0; y < level.length; y++){
+			for(x = 0; x < level[0].length; x++){
+
+				ctx.beginPath()
+				ctx.rect(x * levelfactor * scale, y * levelfactor * scale, levelfactor * scale, levelfactor * scale)
+
+				ctx.fillStyle = "#808080"
+
+				if(level[y][x] == 1){
+					ctx.fillStyle = "#202020"
+				}
+
+				ctx.fill()
+				//ctx.strokeStyle = "black"
+				//ctx.stroke()
+			}
+		}
+
+		// draw player
+		var playersize = 0.5
+		ctx.beginPath()
+		ctx.rect((player.x - (player.size / 2)) * scale, (player.y - (playersize / 2 * levelfactor)) * scale, playersize * levelfactor * scale, playersize * levelfactor * scale)
+		ctx.fillStyle = "#FF0000"
+		ctx.fill()
+
+		//for(i = 0; i < canvas.width; i+= canvas.width / 64){
+		//	rayangle = player.angle + points[i].ang
+		//	raycast(player.x , player.y, rayangle, true)
+		//}
+		//raycast(player.x, player.y, player.angle, true, false)
+
+		ctx.beginPath()
+		ctx.moveTo(player.x * scale, player.y * scale)
+		ctx.lineTo(player.x * scale + Math.cos(player.angle) * (levelfactor) * scale, player.y * scale + Math.sin(player.angle) * (levelfactor) * scale)
+		ctx.lineWidth = 2
+		ctx.strokeStyle = "#FF0000"
+		ctx.stroke()
+
+		//ctx.beginPath()
+		//ctx.moveTo(x, y)
+		//ctx.lineTo(x, y)
+		//ctx.strokeStyle = "white"
+		//ctx.stroke()
+	}
+
+</script>
+
+<body onLoad="Load()" style="margin:0;overflow:hidden">
+	<canvas id="gameArea"></canvas>
+	<input type="file" id="levelinput" accept="image/png, image/jpeg" onChange="readImage(this)">
+</body>
+
+</html>
