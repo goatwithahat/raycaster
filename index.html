@@ -147,13 +147,13 @@
 
 				var data = levelctx.getImageData(x, y, 1, 1).data
 
-				if(data[0] == 255 && data[1] == 0 && data[2] == 0){
+				if(data[0] > 128 && data[1] < 128 && data[2] < 128){
 					level[y][x] = 1
 				}
-				if(data[0] == 0 && data[1] == 0 && data[2] == 0){
+				if(data[0] < 128 && data[1] < 128 && data[2] < 128){
 					level[y][x] = 2
 				}
-				if(data[0] == 0 && data[1] == 255 && data[2] == 0){
+				if(data[0] < 128 && data[1] > 128 && data[2] < 128){
 					start[starti] = {x: x, y: y}
 					starti++
 				}
