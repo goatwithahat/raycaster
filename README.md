@@ -24,6 +24,6 @@ https://goatwithahat.github.io/raycaster/
 
 use the input field to load a png/jpeg file
 
-![input field](https://raw.githubusercontent.com/goatwithahat/raycaster/main/input.JPG)
+![input field](https://raw.githubusercontent.com/goatwithahat/raycaster/main/input.jpg)
 
 <sub>bottom left of screen</sub>
