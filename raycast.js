@@ -35,7 +35,7 @@ function raycast(originx, originy, angle, drawfinal = false, draw = false){
         gridx = posx ? Math.floor(currentx / levelfactor) : Math.floor(currentx / levelfactor) - 1
         gridy = Math.floor(currenty / levelfactor)
 
-        while(level[gridy] != undefined && level[gridy][gridx] != undefined && level[gridy][gridx] != 1){
+        while(level[gridy] != undefined && level[gridy][gridx] != undefined && level[gridy][gridx] == 0){
             
             currentx += cos / cos * levelfactor * Math.sign(cos)
             currenty += sin / cos * levelfactor * Math.sign(cos)
@@ -76,7 +76,7 @@ function raycast(originx, originy, angle, drawfinal = false, draw = false){
         gridx = Math.floor(currentx / levelfactor)
         gridy = posy ? Math.floor(currenty / levelfactor) : Math.floor(currenty / levelfactor) - 1
 
-        while(level[gridy] != undefined && level[gridy][gridx] != undefined && level[gridy][gridx] != 1){
+        while(level[gridy] != undefined && level[gridy][gridx] != undefined && level[gridy][gridx] == 0){
             
             currentx += cos / sin * levelfactor * Math.sign(sin)
             currenty += sin / sin * levelfactor * Math.sign(sin)

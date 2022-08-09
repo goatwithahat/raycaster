@@ -145,8 +145,12 @@
 		for(y = 0; y < level.length; y++){
 			for(x = 0; x < level[0].length; x++){
 
-				var data = levelctx.getImageData(x, y, 1, 1).data
-
+				try{
+					var data = levelctx.getImageData(x, y, 1, 1).data
+				}catch(err){
+					break
+				}
+				
 				if(data[0] > 128 && data[1] < 128 && data[2] < 128){
 					level[y][x] = 1
 				}
@@ -327,6 +331,9 @@
 				ctx.fillStyle = "#808080"
 
 				if(level[y][x] == 1){
+					ctx.fillStyle = "#802020"
+				}
+				if(level[y][x] == 2){
 					ctx.fillStyle = "#202020"
 				}
 
@@ -340,7 +347,7 @@
 		var playersize = 0.5
 		ctx.beginPath()
 		ctx.rect((player.x - (player.size / 2)) * scale, (player.y - (playersize / 2 * levelfactor)) * scale, playersize * levelfactor * scale, playersize * levelfactor * scale)
-		ctx.fillStyle = "#FF0000"
+		ctx.fillStyle = "#0000FF"
 		ctx.fill()
 
 		//for(i = 0; i < canvas.width; i+= canvas.width / 64){
@@ -353,7 +360,7 @@
 		ctx.moveTo(player.x * scale, player.y * scale)
 		ctx.lineTo(player.x * scale + Math.cos(player.angle) * (levelfactor) * scale, player.y * scale + Math.sin(player.angle) * (levelfactor) * scale)
 		ctx.lineWidth = 2
-		ctx.strokeStyle = "#FF0000"
+		ctx.strokeStyle = "#0000FF"
 		ctx.stroke()
 
 		//ctx.beginPath()
