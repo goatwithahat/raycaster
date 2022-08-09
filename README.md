@@ -26,4 +26,4 @@ use the input field to load a png/jpeg file
 
 ![input field](https://raw.githubusercontent.com/goatwithahat/raycaster/main/input.jpg)
 
-<sub>bottom left of screen</sub>
+<sub>bottom of screen</sub>
