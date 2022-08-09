@@ -2,8 +2,18 @@
 
 https://goatwithahat.github.io/raycaster/
 
-controls
+###### controls
 
-arrow keys - move
-w/s - move forward/backward
-a/d - turn left/right
+- arrow keys -> move
+- w/s -> move forward/backward
+- a/d -> turn left/right
+
+###### custom levels
+![example level image](https://raw.githubusercontent.com/goatwithahat/raycaster/main/level.png)
+
+- black pixels are grey walls
+- red pixels are red walls
+- green pixels are player start points chosen at random
+- blue walls are empty spaces next to the border/edge of the level image
+
+use the input field to load a png/jpeg file
