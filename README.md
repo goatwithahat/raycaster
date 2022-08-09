@@ -20,6 +20,7 @@ https://goatwithahat.github.io/raycaster/
 
 <sub>pixel color is determined by the r/b/g value being greater or less than 128</sub>
 
+###### loading custom levels
 
 use the input field to load a png/jpeg file
 
