@@ -124,13 +124,17 @@ function raycast(originx, originy, angle, drawfinal = false, draw = false){
         var ray = {
             dist: ydist,
             xwall:  false,
-            walltype: yvoid ? -1 : ywalltype
+            walltype: yvoid ? -1 : ywalltype,
+            xpos: Math.round(originx + cos * ydist),
+            ypos: Math.round(originy + sin * ydist)
         }
     }else{
         var ray = {
             dist: xdist,
             xwall: true,
-            walltype: xvoid ? -1 : xwalltype
+            walltype: xvoid ? -1 : xwalltype,
+            xpos: Math.round(originx + cos * xdist),
+            ypos: Math.round(originy + sin * xdist)
         }
     }
 
