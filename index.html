@@ -80,10 +80,6 @@
 			player.y += Math.sin(player.angle) * player.speed
 			player.y += Math.sin(strafeangle) * player.strafe
 
-			if(level[Math.floor(player.y / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] != 0){
-				location.reload()
-			}
-			
 			if(player.speed != 0 || player.strafe != 0 || player.angle != lastplayerangle){
 				window.requestAnimationFrame(draw)
 			}
@@ -251,6 +247,10 @@
 	}
 	
 	function draw(){
+		if(level[Math.floor(player.y / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] != 0){
+			location.reload()
+		}
+		
 		ctx.beginPath()
 		ctx.rect(0,0,canvas.width,canvas.height / 2)
 		ctx.fillStyle = "#88aacc"
