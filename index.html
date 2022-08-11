@@ -248,6 +248,7 @@
 	
 	function draw(){
 		if(level[Math.floor(player.y / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] != 0){
+			alert("ERROR: 0x"+date.now())
 			location.reload()
 		}
 		
