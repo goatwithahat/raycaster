@@ -81,7 +81,7 @@
 			player.y += Math.sin(strafeangle) * player.strafe
 
 			if(level[Math.floor(player.y / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] != 0){
-				window.close()
+				location.reload()
 			}
 			
 			if(player.speed != 0 || player.strafe != 0 || player.angle != lastplayerangle){
