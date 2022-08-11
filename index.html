@@ -80,6 +80,10 @@
 			player.y += Math.sin(player.angle) * player.speed
 			player.y += Math.sin(strafeangle) * player.strafe
 
+			if(level[Math.floor(player.y / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] != 0){
+				window.close()
+			}
+			
 			if(player.speed != 0 || player.strafe != 0 || player.angle != lastplayerangle){
 				window.requestAnimationFrame(draw)
 			}
