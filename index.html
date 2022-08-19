@@ -10,6 +10,7 @@
 <img src="./level.png" id="levelpng">
 <img src="./wall.png" id="wallpng">
 <img src="./wall2.png" id="wall2png">
+<img src="./wall3.png" id="wall3png">
 
 <script> 	
 	// initialize time variables
@@ -27,9 +28,11 @@
 
 	var wallimg = document.getElementById("wallpng")
 	var wall2img = document.getElementById("wall2png")
+	var wall3img = document.getElementById("wall3png")
 
 	document.getElementById("wallpng").remove()
 	document.getElementById("wall2png").remove()
+	document.getElementById("wall3png").remove()
 
 	var levelfactor = 40
 
@@ -41,18 +44,23 @@
 
 	var points = []
 
+	var click = true
+
 	var checkx1 = 0
 	var checky1 = 0
 	var checkx2 = 0
 	var checky2 = 0
 
+	var fov = 90
+	var lastfov = undefined
+
 	var player = {
 		x: 1.5 * levelfactor,
 		y: 1.5 * levelfactor,
-		angle: Date.now() % (Math.PI * 2),
+		angle: 0,//Date.now() % (Math.PI * 2),
 		speed: 0,
 		strafe: 0,
-		size: levelfactor / 2,
+		size: levelfactor / 4,
 
 		control: function(){
 
@@ -64,27 +72,50 @@
 				player.strafe = player.strafe * diagmult
 			}
 
-			function torad(angle){
-				return angle * Math.PI / 180
+			player.angle = keysDown[65] 
+			? (player.angle - (torad(2) * fov / 90)) % (Math.PI * 2) : keysDown[68] 
+			? (player.angle + (torad(2) * fov / 90)) % (Math.PI * 2) : player.angle
+
+
+			strafeangle = player.angle + torad(90)
+
+
+			playerspeedx = Math.cos(player.angle) * player.speed
+			playerstrafex = Math.cos(strafeangle) * player.strafe
+
+			playerspeedy = Math.sin(player.angle) * player.speed
+			playerstrafey = Math.sin(strafeangle) * player.strafe
+
+			
+			checkx1 = Math.floor((player.x + (player.size * Math.sign(playerspeedx + playerstrafex))) / levelfactor)
+			checky1 = Math.floor(player.y / levelfactor)
+			
+			if(level[checky1] != undefined && level[checky1][checkx1] == 0){
+				player.x += playerspeedx + playerstrafex
 			}
 
-			player.angle = keysDown[65] 
-			? (player.angle - torad(2)) % (Math.PI * 2) : keysDown[68] 
-			? (player.angle + torad(2)) % (Math.PI * 2) : player.angle
+			checkx2 = Math.floor(player.x / levelfactor)
+			checky2 = Math.floor((player.y + (player.size * Math.sign(playerspeedy + playerstrafey))) / levelfactor)
+			
+			if(level[checky2] != undefined && level[checky2][checkx2] == 0){
+				player.y += playerspeedy + playerstrafey
+			}
+			
+			//strafeangle = player.angle + torad(90)
 
-			strafeangle = player.angle + Math.PI/2
+			//player.x += Math.cos(strafeangle) * player.strafe
 
-			player.x += Math.cos(player.angle) * player.speed
-			player.x += Math.cos(strafeangle) * player.strafe
-
-			player.y += Math.sin(player.angle) * player.speed
-			player.y += Math.sin(strafeangle) * player.strafe
+			//player.y += Math.sin(strafeangle) * player.strafe
 
 			if(player.speed != 0 || player.strafe != 0 || player.angle != lastplayerangle){
 				window.requestAnimationFrame(draw)
 			}
 			lastplayerangle = player.angle
 		}
+	}
+
+	function torad(angle){
+		return angle * Math.PI / 180
 	}
 
 	function Load(){
@@ -125,20 +156,21 @@
 
 				try{
 					var data = levelctx.getImageData(x, y, 1, 1).data
+
+					if(data[0] > 128 && data[1] < 128 && data[2] < 128){
+						level[y][x] = 1
+					}
+					if(data[0] < 128 && data[1] < 128 && data[2] < 128){
+						level[y][x] = 2
+					}
+					if(data[0] < 128 && data[1] > 128 && data[2] < 128){
+						start[starti] = {x: x, y: y}
+						starti++
+					}
 				}catch(err){
 					break
 				}
 				
-				if(data[0] > 128 && data[1] < 128 && data[2] < 128){
-					level[y][x] = 1
-				}
-				if(data[0] < 128 && data[1] < 128 && data[2] < 128){
-					level[y][x] = 2
-				}
-				if(data[0] < 128 && data[1] > 128 && data[2] < 128){
-					start[starti] = {x: x, y: y}
-					starti++
-				}
 			}
 		}
 
@@ -151,13 +183,41 @@
 			player.y = 1.5 * levelfactor
 		}
 		
-		
 		document.getElementById("levelcanvas").remove()
 
 		window.requestAnimationFrame(draw)
 
 		Start()
 	}
+
+	function updatefov(){
+		if(lastfov == fov){
+			return
+		}
+
+		if(fov > 170){
+			fov = 170
+		}
+		if(fov < 1){
+			fov = 1
+		}
+		
+		lastfov = fov
+
+
+		points = new Array()
+
+		pointswidth = canvas.width // odd to fit 90 degree angle
+		pointsdist = (pointswidth / 2) / Math.tan((fov / 2) * Math.PI / 180)
+
+		for(i = 0; i <= pointswidth; i++){
+			points[i] = {x: pointsdist, y: (-pointswidth / 2) + i, ang: 0}
+			points[i].ang = Math.atan2(points[i].y, points[i].x)
+		}
+
+		window.requestAnimationFrame(draw)
+	}
+
 
 	function Start() {
 		runloop = false
@@ -171,25 +231,34 @@
 
 		ctx.imageSmoothingEnabled = false
 	
+		updatefov()
+
+		/*
 		var plook = {
 			x:Math.cos(0),
 			y:Math.sin(0)
 		}
 		var screen = {
-			x:Math.cos(Math.PI/2),
-			y:Math.sin(Math.PI/2)
+			x:Math.cos(torad(90)),
+			y:Math.sin(torad(90))
 		}
 
-		points = new Array()
-
 		pointswidth = canvas.width // odd to fit 90 degree angle
-		pointsdist = (pointswidth - 1) / 2
+		pointsdist = Math.ceil(pointswidth / 2)
 		
 		for(i = -pointsdist; i <= pointsdist; i++){
 			points[i+pointsdist] = {x: (plook.x * pointsdist) + (screen.x * i), y: (plook.y * pointsdist) + (screen.y * i), ang: 0}
 			points[i+pointsdist].ang = Math.atan2(points[i+pointsdist].y, points[i+pointsdist].x)
 		}
-
+		*/
+		
+		if(click){
+			canvas.addEventListener("mousedown", function click(e) {
+				player.angle += points[e.clientX].ang
+			})
+			click = false
+		}
+		
 		// Create event listeners for keysdown variable
 		window.addEventListener("keydown", function (e) {
 			keysDown[e.keyCode] = true
@@ -198,9 +267,13 @@
 			delete keysDown[e.keyCode]
 		})
 
+		window.addEventListener("wheel", function (e) {
+			fov = e.deltaY < 0 ? 15 : 90 
+		})
+
 		// Create event listener for window resizing + resize window
 		addEventListener("resize", (e) => {
-			window.resizeTo(canvas.width + 8, canvas.height + 28)
+			window.resizeTo(canvas.width + 8, canvas.height + 32 + 28)
 		})
 		window.resizeBy(1, 1)
 
@@ -236,6 +309,8 @@
 		// update game
 		//draw()
 
+		updatefov()
+
 		if(keysDown[77]){
 			window.requestAnimationFrame(drawmap)
 		}
@@ -247,10 +322,6 @@
 	}
 	
 	function draw(){
-		if(level[Math.floor(player.y / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] == undefined || level[Math.floor(player.y / levelfactor)][Math.floor(player.x / levelfactor)] != 0){
-			location.reload()
-		}
-		
 		ctx.beginPath()
 		ctx.rect(0,0,canvas.width,canvas.height / 2)
 		ctx.fillStyle = "#88aacc"
@@ -264,42 +335,58 @@
 		for(i = 0; i < canvas.width; i ++){
 			rayangle = player.angle + points[i].ang
 			ray = raycast(player.x, player.y, rayangle)
-			ray.dist = levelfactor * 500 / (ray.dist * Math.cos(points[i].ang))
+			ray.dist = canvas.height * points[i].x / 20 / (ray.dist * Math.cos(points[i].ang))
 
-			if(ray.xwall){
-				if(Math.cos(rayangle) >= 0){
-					var wallsplice = Math.floor(ray.ypos % wallimg.width) 
-				}else{
-					var wallsplice = -1 * Math.floor(ray.ypos % wallimg.width) + wallimg.width - 1
-				}
-			}else{
-				if(Math.sin(rayangle) <= 0){
-					var wallsplice = Math.floor(ray.xpos % wallimg.width) 
-				}else{
-					var wallsplice = -1 * Math.floor(ray.xpos % wallimg.width) + wallimg.width - 1
-				}
-
-			}
 			var screeny = (canvas.height/2) - ((ray.dist)/2)
 			
 			switch(ray.walltype){
 				case 1:
-					ctx.drawImage(wallimg, wallsplice, 0, 1, wallimg.height, i, screeny, 1, ray.dist)
+					var slice = getslice(rayangle, ray, wallimg.width)
+					ctx.drawImage(wallimg, slice, 0, 1, wallimg.height, i, screeny, 1, ray.dist)
 				break
 				case 2:
-					ctx.drawImage(wall2img, wallsplice, 0, 1, wall2img.height, i, screeny, 1, ray.dist)
+					var slice = getslice(rayangle, ray, wall2img.width)
+					ctx.drawImage(wall2img, slice, 0, 1, wall2img.height, i, screeny, 1, ray.dist)
 				break
 				default:
-					ctx.beginPath()
-					ctx.fillStyle = "#FFFFFF"
-					if(ray.xwall){
-						ctx.fillStyle = "#222299"
-					}else{
-						ctx.fillStyle = "#222288"
-					}
-					ctx.rect(i, screeny, 1, ray.dist)
-					ctx.fill()
+					var slice = getslice(rayangle, ray, wall3img.width)
+					ctx.drawImage(wall3img, slice, 0, 1, wall3img.height, i, screeny, 1, ray.dist)
+
+					//ctx.beginPath()
+					//ctx.fillStyle = "#FFFFFF"
+					//if(ray.xwall){
+					//	ctx.fillStyle = "#222299"
+					//}else{
+					//	ctx.fillStyle = "#222288"
+					//}
+					//ctx.rect(i, screeny, 1, ray.dist)
+					//ctx.fill()
 				break
+			}
+		}
+
+		ctx.beginPath()
+		ctx.fillStyle = "#FFFFFF"
+		ctx.rect(canvas.width / 2, (canvas.height / 2) - 10, 1, 21)
+		ctx.fill()
+		ctx.beginPath()
+		ctx.fillStyle = "#FFFFFF"
+		ctx.rect((canvas.width / 2) - 10, canvas.height / 2, 21, 1)
+		ctx.fill()
+	}
+
+	function getslice(rayangle, ray, width){
+		if(ray.xwall){
+			if(Math.cos(rayangle) >= 0){
+				return Math.floor(ray.ypos % width)
+			}else{
+				return width - Math.floor(ray.ypos % width) - 1
+			}
+		}else{
+			if(Math.sin(rayangle) <= 0){
+				return Math.floor(ray.xpos % width)
+			}else{
+				return width - Math.floor(ray.xpos % width) - 1
 			}
 		}
 	}
@@ -333,34 +420,50 @@
 		}
 
 		// draw player
-		var playersize = 0.5
 		ctx.beginPath()
-		ctx.rect((player.x - (player.size / 2)) * scale, (player.y - (playersize / 2 * levelfactor)) * scale, playersize * levelfactor * scale, playersize * levelfactor * scale)
+		ctx.rect((player.x - player.size) * scale, (player.y - player.size) * scale, player.size * 2 * scale, player.size * 2 * scale)
 		ctx.fillStyle = "#0000FF"
 		ctx.fill()
 
-		//for(i = 0; i < canvas.width; i+= canvas.width / 64){
-		//	rayangle = player.angle + points[i].ang
-		//	raycast(player.x , player.y, rayangle, true)
-		//}
-		//raycast(player.x, player.y, player.angle, true, false)
+		
+		for(i = 0; i < canvas.width; i+= canvas.width / 64){
+			rayangle = player.angle + points[i].ang
+			ray = raycast(player.x, player.y, rayangle)
 
+			ctx.beginPath()
+			ctx.moveTo(player.x * scale, player.y * scale)
+			ctx.lineTo(ray.xpos * scale, ray.ypos * scale)
+			ctx.lineWidth = 1
+			ctx.strokeStyle = "#00FFFF80"
+			ctx.stroke()
+		}
+		ray = raycast(player.x, player.y, player.angle)
 		ctx.beginPath()
 		ctx.moveTo(player.x * scale, player.y * scale)
-		ctx.lineTo(player.x * scale + Math.cos(player.angle) * (levelfactor) * scale, player.y * scale + Math.sin(player.angle) * (levelfactor) * scale)
-		ctx.lineWidth = 2
-		ctx.strokeStyle = "#0000FF"
+		ctx.lineTo(ray.xpos * scale, ray.ypos * scale)
+		ctx.lineWidth = 1
+		ctx.strokeStyle = "#0000FF80"
 		ctx.stroke()
 
-		ctx.beginPath()
-		ctx.rect(checkx1 * levelfactor * scale, checky1 * levelfactor * scale, levelfactor * scale, levelfactor * scale)
-		ctx.fillStyle = "#FF8000"
-		ctx.fill()
 
-		ctx.beginPath()
-		ctx.rect(checkx2 * levelfactor * scale, checky2 * levelfactor * scale, levelfactor * scale, levelfactor * scale)
-		ctx.fillStyle = "#0080FF"
-		ctx.fill()
+		//ctx.beginPath()
+		//ctx.moveTo(player.x * scale, player.y * scale)
+		//ctx.lineTo(player.x * scale + Math.cos(player.angle) * (levelfactor) * scale, player.y * scale + Math.sin(player.angle) * (levelfactor) * scale)
+		//ctx.lineWidth = 2
+		//ctx.strokeStyle = "#0000FF"
+		//ctx.stroke()
+
+
+
+		//ctx.beginPath()
+		//ctx.rect(checkx1 * levelfactor * scale, checky1 * levelfactor * scale, levelfactor * scale, levelfactor * scale)
+		//ctx.fillStyle = "#FF000080"
+		//ctx.fill()
+
+		//ctx.beginPath()
+		//ctx.rect(checkx2 * levelfactor * scale, checky2 * levelfactor * scale, levelfactor * scale, levelfactor * scale)
+		//ctx.fillStyle = "#0000FF80"
+		//ctx.fill()
 
 		//ctx.beginPath()
 		//ctx.moveTo(x, y)

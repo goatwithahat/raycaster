@@ -115,7 +115,6 @@ function raycast(originx, originy, angle, drawfinal = false, draw = false){
             ctx.moveTo(originx, originy)
             ctx.lineTo(originx + cos * ydist, originy + sin * ydist)
             ctx.strokeStyle = "#FF0000"
-            
         }
         ctx.stroke()
     }
@@ -125,37 +124,19 @@ function raycast(originx, originy, angle, drawfinal = false, draw = false){
             dist: ydist,
             xwall:  false,
             walltype: yvoid ? -1 : ywalltype,
-            xpos: Math.round(originx + cos * ydist),
-            ypos: Math.round(originy + sin * ydist)
+            xpos: originx + cos * ydist,
+            ypos: originy + sin * ydist
         }
     }else{
         var ray = {
             dist: xdist,
             xwall: true,
             walltype: xvoid ? -1 : xwalltype,
-            xpos: Math.round(originx + cos * xdist),
-            ypos: Math.round(originy + sin * xdist)
+            xpos: originx + cos * xdist,
+            ypos: originy + sin * xdist
         }
     }
 
     return ray
-
-    //if(level[gridy] != undefined && level[gridy][gridx] != undefined && level[gridx][gridy] == 1){
-    //    console.log("hit wall at "+gridx+", "+gridy)
-    //}
-
-    //ctx.beginPath()
-    //ctx.moveTo(originx, originy)
-    //ctx.lineTo(currentx, currenty)
-    //ctx.strokeStyle = "#0000FF"
-    //ctx.stroke()
-
-    //ctx.beginPath()
-    //ctx.moveTo(originx, originy)
-    //ctx.lineTo(currentx, currenty)
-    //ctx.strokeStyle = "#FF0000"
-    //ctx.stroke()
-
-    return Math.hypot(currentx - originx, currenty - originy)
 }
 
