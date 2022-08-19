@@ -7,6 +7,8 @@ https://goatwithahat.github.io/raycaster/
 - arrow keys -> move
 - w/s -> move forward/backward
 - a/d -> turn left/right
+- mouse click (left or right) -> look in direction
+- m -> map
 
 ## custom levels
 ![example level image](https://raw.githubusercontent.com/goatwithahat/raycaster/main/level.png)
