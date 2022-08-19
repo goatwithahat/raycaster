@@ -9,6 +9,7 @@ https://goatwithahat.github.io/raycaster/
 - a/d -> turn left/right
 - mouse click (left or right) -> look in direction
 - m -> map
+- scroll wheel up/down -> zoom in/out
 
 ## custom levels
 ![example level image](https://raw.githubusercontent.com/goatwithahat/raycaster/main/level.png)
