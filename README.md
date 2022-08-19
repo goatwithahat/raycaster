@@ -14,7 +14,7 @@ https://goatwithahat.github.io/raycaster/
 - black pixels are grey walls
 - red pixels are red walls
 - green pixels are player start points chosen at random
-- blue walls are empty spaces next to the border/edge of the level image
+- fences are empty spaces next to the border/edge of the level image
 
 <sub>any color other than these are considered empty space</sub>
 
